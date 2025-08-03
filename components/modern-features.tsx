@@ -1,4 +1,4 @@
-import { Smartphone, Zap, Shield, Clock, Star, Users, CreditCard, Bell } from "lucide-react"
+import { Smartphone, Zap, Shield, Clock, Star, Users, CreditCard, Bell, Link } from "lucide-react"
 
 const features = [
   {
@@ -88,9 +88,11 @@ export function ModernFeatures() {
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               Join thousands of players who have made Striker Zone their home ground. Experience the difference today.
             </p>
+            <Link href="/booking" >
             <button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl text-lg">
               Start Playing Now
             </button>
+            </Link>
           </div>
         </div>
       </div>

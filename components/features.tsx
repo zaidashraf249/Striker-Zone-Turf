@@ -1,4 +1,4 @@
-import { Calendar, CreditCard, Camera, User, Star, Bell, Phone, Gift, MapPin, Settings } from "lucide-react"
+import { Calendar, CreditCard, Camera, User, Star, Bell, Phone, Gift, MapPin, Settings, Link } from "lucide-react"
 
 const features = [
   {
@@ -101,9 +101,11 @@ export function Features() {
               and discover why we're rated #1.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/booking">
               <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
                 Start Booking Now
               </button>
+              </Link>
               <button className="border border-gray-300 hover:border-green-300 text-gray-700 px-8 py-3 rounded-lg font-semibold transition-colors">
                 Take a Virtual Tour
               </button>

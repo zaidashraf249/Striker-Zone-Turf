@@ -1,5 +1,6 @@
 import { Star, Quote } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Link from "next/link"
 
 const testimonials = [
   {
@@ -119,9 +120,11 @@ export function Testimonials() {
             Experience the difference yourself. Book your first session and see why Strike Zone is the preferred choice
             for serious players.
           </p>
+          <Link href="/booking">
           <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors cursor-pointer">
             Book Your First Game
           </button>
+          </Link>
         </div>
       </div>
     </section>

@@ -1,16 +1,30 @@
-import type React from "react"
-import Link from "next/link"
-import { MapPin, Phone, Mail, Clock, Facebook, Twitter, Instagram, Youtube } from "lucide-react"
-import { memo } from "react"
+import type React from "react";
+import Link from "next/link";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Facebook,
+  Twitter,
+  Instagram,
+  Youtube,
+} from "lucide-react";
+import { memo } from "react";
 
 // Memoized link component to prevent re-renders
-const FooterLink = memo(({ href, children }: { href: string; children: React.ReactNode }) => (
-  <Link href={href} className="text-gray-300 hover:text-white transition-colors cursor-pointer">
-    {children}
-  </Link>
-))
+const FooterLink = memo(
+  ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <Link
+      href={href}
+      className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+    >
+      {children}
+    </Link>
+  )
+);
 
-FooterLink.displayName = "FooterLink"
+FooterLink.displayName = "FooterLink";
 
 // Memoized social icon component
 const SocialIcon = memo(({ href, icon: Icon }: { href: string; icon: any }) => (
@@ -22,19 +36,21 @@ const SocialIcon = memo(({ href, icon: Icon }: { href: string; icon: any }) => (
   >
     <Icon className="h-5 w-5" />
   </a>
-))
+));
 
-SocialIcon.displayName = "SocialIcon"
+SocialIcon.displayName = "SocialIcon";
 
 // Memoized contact item component
-const ContactItem = memo(({ icon: Icon, children }: { icon: any; children: React.ReactNode }) => (
-  <div className="flex items-start space-x-3">
-    <Icon className="h-5 w-5 text-green-500 mt-1" />
-    <div>{children}</div>
-  </div>
-))
+const ContactItem = memo(
+  ({ icon: Icon, children }: { icon: any; children: React.ReactNode }) => (
+    <div className="flex items-start space-x-3">
+      <Icon className="h-5 w-5 text-green-500 mt-1" />
+      <div>{children}</div>
+    </div>
+  )
+);
 
-ContactItem.displayName = "ContactItem"
+ContactItem.displayName = "ContactItem";
 
 export function Footer() {
   return (
@@ -50,13 +66,17 @@ export function Footer() {
               <span className="text-xl font-bold">Striker Zone</span>
             </div>
             <p className="text-gray-300 leading-relaxed">
-              Premium turf booking platform offering world-class facilities, real-time booking, and exceptional sports
-              experience for players of all levels in Nagpur.
+              Premium turf booking platform offering world-class facilities,
+              real-time booking, and exceptional sports experience for players
+              of all levels in Nagpur.
             </p>
             <div className="flex space-x-4">
               <SocialIcon href="#" icon={Facebook} />
               <SocialIcon href="#" icon={Twitter} />
-              <SocialIcon href="https://www.instagram.com/strikers.zone_/" icon={Instagram} />
+              <SocialIcon
+                href="https://www.instagram.com/strikers.zone_/"
+                icon={Instagram}
+              />
               <SocialIcon href="#" icon={Youtube} />
             </div>
           </div>
@@ -91,32 +111,50 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-6">Services</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="#"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Football Turf Booking
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="#"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Cricket Practice Nets
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="#"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Corporate Events
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="#"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Tournament Hosting
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="#"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Equipment Rental
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="#"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Coaching Programs
                 </a>
               </li>
@@ -154,16 +192,23 @@ export function Footer() {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-400 text-sm">
-              © {new Date().getFullYear()} Strike Zone. All rights reserved. | Designed for the love of the game.
+              © {new Date().getFullYear()} Strike Zone. All rights reserved. |
+              Designed for the love of the game.
             </div>
             <div className="flex space-x-6 text-sm">
-              <FooterLink href="/privacy">Privacy Policy</FooterLink>
-              <FooterLink href="/terms">Terms of Service</FooterLink>
-              <FooterLink href="/refund">Refund Policy</FooterLink>
+              <FooterLink href="/terms/privacy-policy">
+                Privacy Policy
+              </FooterLink>
+              <FooterLink href="/terms/terms-of-service">
+                Terms of Service
+              </FooterLink>
+              <FooterLink href="/terms/refund-policy">
+              Refund Policy
+              </FooterLink>
             </div>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }

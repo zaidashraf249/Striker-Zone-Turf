@@ -9,7 +9,7 @@ const instagramPosts = [
   {
     id: 1,
     type: "image",
-    src: "/placeholder.svg?height=400&width=400&text=Striker+Zone+Evening+Lights",
+    src: "/images/turf.png",
     caption: "Sharpen your skills, master your moves, apply at the turf. 🏟️ Striker Zone - Ready to Play! ⚽",
     likes: 89,
     comments: 12,
@@ -19,7 +19,7 @@ const instagramPosts = [
   {
     id: 2,
     type: "video",
-    src: "/placeholder.svg?height=400&width=400&text=Match+Highlights+Reel",
+    src: "/images/turf.png", // Replace with actual video file if available
     caption: "Epic match moments at Striker Zone! 🔥 Book your slot now! ⚽",
     likes: 156,
     comments: 23,
@@ -29,7 +29,7 @@ const instagramPosts = [
   {
     id: 3,
     type: "image",
-    src: "/placeholder.svg?height=400&width=400&text=Professional+Turf+Setup",
+    src: "/images/turf.png",
     caption: "Premium facilities for the ultimate football experience! 🏆",
     likes: 67,
     comments: 8,
@@ -37,16 +37,18 @@ const instagramPosts = [
     url: "https://www.instagram.com/p/DL-PAfQI040/",
   },
   {
-    id: 4,
-    type: "video",
-    src: "/placeholder.svg?height=400&width=400&text=Skills+Training+Session",
-    caption: "Training session vibes! 💪 Where champions are made! ⚽",
-    likes: 134,
-    comments: 19,
-    timestamp: "1 week ago",
-    url: "https://www.instagram.com/reel/DLus2L5y0P9/",
-  },
+  id: 4,
+  type: "video",
+  src: "/images/turf.png", // ✅ CORRECT - this maps to public/video/Zaid-body.mp4
+  caption: "Training session vibes! 💪 Where champions are made! ⚽",
+  likes: 134,
+  comments: 19,
+  timestamp: "1 week ago",
+  url: "https://www.instagram.com/reel/DLus2L5y0P9/",
+}
+
 ]
+
 
 export function InstagramFeed() {
   const [likedPosts, setLikedPosts] = useState<number[]>([])

@@ -203,7 +203,7 @@ export default function DashboardPage() {
                       </a>
                     </Button>
                   </Link>
-                  <Link href="/bookings" passHref legacyBehavior>
+                  <Link href="/booking" passHref legacyBehavior>
                     <Button variant="outline" className="justify-start bg-transparent" asChild>
                       <a>
                         <Clock className="h-4 w-4 mr-2" />
