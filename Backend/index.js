@@ -41,7 +41,7 @@ app.use(express.json());
 connectDB(); // MongoDB connection
 
 app.use("/api/v1", contactRouter);
-app.use("/api/v1", bookingRouter); // Zoho booking API
+app.use("/api/v1", bookingRouter); 
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

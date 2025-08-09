@@ -1,20 +1,21 @@
-// import express from "express";
-// import { fetchBookings } from "../controller/bookingController.js";
-
-// const router = express.Router();
-
-// router.get("/bookings", fetchBookings);
-
-// export default router;
-
-
-
 import express from 'express';
-import { getBookings, getServices } from '../controller/bookingController.js';
+import {
+  addBooking, 
+  getBookings, 
+  getBookingById, 
+  updateBooking, 
+  deleteBooking
+} from '../controller/bookingController.js';
+import { authMiddleware, adminMiddleware } from '../middleware/auth.js';
 
-const router = express.Router();
+const bookingRouter = express.Router();
 
-router.get('/bookings', getBookings);
-router.get('/services', getServices);
+// Public
+bookingRouter.post('/', addBooking);
 
-export default router;
+// Admin only
+bookingRouter.get('/', authMiddleware, adminMiddleware, getBookings);
+bookingRouter.put('/:id', authMiddleware, adminMiddleware, updateBooking);
+bookingRouter.delete('/:id', authMiddleware, adminMiddleware, deleteBooking);
+
+export default bookingRouter;
