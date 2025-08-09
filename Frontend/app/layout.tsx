@@ -6,6 +6,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Toaster } from "@/components/ui/toaster"
 import { Suspense } from "react"
+import { ToastProvider } from "@radix-ui/react-toast"
 
 // Optimize font loading
 const inter = Inter({
@@ -69,12 +70,14 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className={inter.className}>
+        <ToastProvider>
         <Header />
         <Suspense fallback={<LoadingFallback />}>
           <main>{children}</main>
         </Suspense>
         <Footer />
         <Toaster />
+        </ToastProvider>
       </body>
     </html>
   )
