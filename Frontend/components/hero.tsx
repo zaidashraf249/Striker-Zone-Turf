@@ -28,7 +28,7 @@ InfoItem.displayName = "InfoItem"
 
 export function Hero() {
   return (
-    <section className="relative bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-12 sm:py-20 lg:py-32">
+    <section className="relative bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 py-12 sm:py-20">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Content */}

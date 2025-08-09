@@ -159,6 +159,7 @@ export default function BookingPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Book Your Turf</h1>
           <p className="text-xl text-gray-600">Select your preferred date and time for the perfect game experience</p>
+          {/* <a href="upi://pay?pa=8275435110@ybl&pn=AbdulRahim&am=19&cu=INR">Pay via UPI</a> */}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
