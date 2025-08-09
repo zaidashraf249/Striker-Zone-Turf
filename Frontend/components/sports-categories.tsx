@@ -26,15 +26,15 @@ const sportsCategories = [
     popular: false,
     features: ["Bowling machine", "Practice nets", "Stumps"],
   },
-  {
-    id: 3,
-    name: "Badminton",
-    icon: "🏸",
-    description: "Indoor courts available",
-    price: "₹400-600/hr",
-    popular: false,
-    features: ["Wooden flooring", "Professional nets", "Shuttlecocks"],
-  },
+  // {
+  //   id: 3,
+  //   name: "Badminton",
+  //   icon: "🏸",
+  //   description: "Indoor courts available",
+  //   price: "₹400-600/hr",
+  //   popular: false,
+  //   features: ["Wooden flooring", "Professional nets", "Shuttlecocks"],
+  // },
 ]
 
 // Memoized feature item component
@@ -51,7 +51,7 @@ FeatureItem.displayName = "FeatureItem"
 const SportCard = memo(({ sport }: { sport: (typeof sportsCategories)[0] }) => (
   <Card
     key={sport.id}
-    className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white relative overflow-hidden"
+    className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white relative overflow-hidden lg:p-10 lg:m-10"
   >
     {sport.popular && <Badge className="absolute top-4 right-4 bg-orange-500 text-white z-10">Popular</Badge>}
 
@@ -97,13 +97,13 @@ export function SportsCategories() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {sportsCategories.map((sport) => (
             <SportCard key={sport.id} sport={sport} />
           ))}
         </div>
 
-        <div className="text-center mt-8 sm:mt-12">
+        {/* <div className="text-center mt-8 sm:mt-12">
           <Link href="/booking" passHref legacyBehavior>
             <Button
               variant="outline"
@@ -114,7 +114,7 @@ export function SportsCategories() {
               <a>View All Sports & Pricing</a>
             </Button>
           </Link>
-        </div>
+        </div> */}
       </div>
     </section>
   )

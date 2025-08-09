@@ -13,12 +13,12 @@ const features = [
     description: "Live availability and instant confirmations",
     color: "from-yellow-500 to-orange-500",
   },
-  {
-    icon: Shield,
-    title: "Secure Payments",
-    description: "100% secure transactions with multiple payment options",
-    color: "from-green-500 to-green-600",
-  },
+  // {
+  //   icon: Shield,
+  //   title: "Secure Payments",
+  //   description: "100% secure transactions with multiple payment options",
+  //   color: "from-green-500 to-green-600",
+  // },
   {
     icon: Clock,
     title: "24/7 Availability",
@@ -53,7 +53,7 @@ const features = [
 
 export function ModernFeatures() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-gradient-to-r from-pink-50 to-purple-50 rounded-3xl p-8 lg:p-12">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 rounded-full text-sm font-medium mb-4">
@@ -82,7 +82,7 @@ export function ModernFeatures() {
           ))}
         </div>
 
-        <div className="text-center mt-16">
+        {/* <div className="text-center mt-16">
           <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-3xl p-8 lg:p-12">
             <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">Ready to Play?</h3>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
@@ -94,7 +94,7 @@ export function ModernFeatures() {
             </button>
             </Link>
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   )
