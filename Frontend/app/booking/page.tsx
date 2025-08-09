@@ -44,15 +44,14 @@ const TimeSlot = memo(
     <button
       onClick={() => slot.available && onSelect(slot.time)}
       disabled={!slot.available}
-      className={`p-3 rounded-lg border text-center transition-all ${
-        isSelected
-          ? "border-green-500 bg-green-50 text-green-700"
-          : slot.available
-            ? slot.type === "peak"
-              ? "border-orange-200 hover:border-orange-300 bg-orange-50 hover:bg-orange-100"
-              : "border-gray-200 hover:border-green-300 hover:bg-green-50"
-            : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
-      }`}
+      className={`p-3 rounded-lg border text-center transition-all ${isSelected
+        ? "border-green-500 bg-green-50 text-green-700"
+        : slot.available
+          ? slot.type === "peak"
+            ? "border-orange-200 hover:border-orange-300 bg-orange-50 hover:bg-orange-100"
+            : "border-gray-200 hover:border-green-300 hover:bg-green-50"
+          : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+        }`}
       aria-pressed={isSelected}
       aria-disabled={!slot.available}
     >
@@ -83,11 +82,10 @@ const DurationButton = memo(
   }) => (
     <button
       onClick={() => onSelect(hours)}
-      className={`px-4 py-2 rounded-lg border transition-all ${
-        isSelected
-          ? "border-green-500 bg-green-50 text-green-700"
-          : "border-gray-200 hover:border-green-300 hover:bg-green-50"
-      }`}
+      className={`px-4 py-2 rounded-lg border transition-all ${isSelected
+        ? "border-green-500 bg-green-50 text-green-700"
+        : "border-gray-200 hover:border-green-300 hover:bg-green-50"
+        }`}
       aria-pressed={isSelected}
     >
       {hours} Hour{hours > 1 ? "s" : ""}
@@ -178,7 +176,18 @@ export default function BookingPage() {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                  disabled={(date) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // midnight today
+
+                    const minDate = new Date("1900-01-01");
+
+                    const maxDate = new Date();
+                    maxDate.setMonth(maxDate.getMonth() + 2); // 2 months ahead
+                    maxDate.setHours(0, 0, 0, 0);
+
+                    return date < today || date < minDate || date > maxDate;
+                  }}
                   className="rounded-md border"
                   initialFocus
                 />
