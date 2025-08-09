@@ -124,7 +124,7 @@ export function Header() {
 
           {/* Contact Info & CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/dashboard" passHref legacyBehavior>
+            <Link href="/login" passHref legacyBehavior>
               <Button variant="outline" size="sm" asChild>
                 <a>
                   <User className="h-4 w-4 mr-2" />
