@@ -5,7 +5,8 @@ import {
   getBookings, 
   getBookingById, 
   updateBooking, 
-  deleteBooking
+  deleteBooking,
+  getCustomers
 } from '../controller/bookingController.js';
 import { verifyAdminToken } from '../middleware/auth.js';
 
@@ -19,5 +20,7 @@ bookingRouter.get('/avail-time-slots', getAvailTimeSlots);
 bookingRouter.get('/get-bookings', verifyAdminToken, getBookings);
 bookingRouter.put('/:id', verifyAdminToken, updateBooking);
 bookingRouter.delete('/delete-booking/:id', verifyAdminToken, deleteBooking);
+
+bookingRouter.get('/get-customers', verifyAdminToken, getCustomers);
 
 export default bookingRouter;

@@ -61,12 +61,10 @@ const addBooking = async (req, res) => {
     });
 
     const savedBooking = await newBooking.save();
-    res
-      .status(201)
-      .json({
-        message: "Booking created in pending state",
-        data: savedBooking,
-      });
+    res.status(201).json({
+      message: "Booking created in pending state",
+      data: savedBooking,
+    });
   } catch (error) {
     res
       .status(500)
@@ -76,72 +74,73 @@ const addBooking = async (req, res) => {
 
 const getAvailTimeSlots = async (req, res) => {
   try {
-  const { date } = req.query; // date string YYYY-MM-DD
+    const { date } = req.query; // date string YYYY-MM-DD
 
-  if (!date) {
-    return res.status(400).json({ error: "Date is required" });
-  }
-
-  const requestedDate = new Date(date);
-  requestedDate.setHours(0, 0, 0, 0);
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Fetch bookings for the day
-  const bookings = await Booking.find({
-    date: { $gte: requestedDate, $lt: new Date(requestedDate.getTime() + 24 * 60 * 60 * 1000) }
-  });
-
-  const bookedTimes = bookings.map(item => {
-    const dateObj = new Date(item.date);
-    return dateObj.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true
-    });
-  });
-
-  const timeSlots = [];
-  for (let hour = 6; hour <= 23; hour++) {
-    const slotDate = new Date(requestedDate);
-    slotDate.setHours(hour, 0, 0, 0);
-
-    const displayTime12hr = slotDate.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true
-    });
-
-    // Is slot in the past relative to now? Only for today
-    let cannotBook = false;
-    if (requestedDate.getTime() === today.getTime()) {
-      const now = new Date();
-      if (slotDate.getTime() <= now.getTime()) {
-        cannotBook = true;
-      }
+    if (!date) {
+      return res.status(400).json({ error: "Date is required" });
     }
 
-    timeSlots.push({
-      time: displayTime12hr,
-      price: hour >= 21 ? 1200 : 800,
-      type: hour >= 21 ? "peak" : "off-peak",
-      available: !bookedTimes.includes(displayTime12hr) && !cannotBook,
-      cannotBook // new flag
+    const requestedDate = new Date(date);
+    requestedDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Fetch bookings for the day
+    const bookings = await Booking.find({
+      date: {
+        $gte: requestedDate,
+        $lt: new Date(requestedDate.getTime() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    const bookedTimes = bookings.map((item) => {
+      const dateObj = new Date(item.date);
+      return dateObj.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    });
+
+    const timeSlots = [];
+    for (let hour = 6; hour <= 23; hour++) {
+      const slotDate = new Date(requestedDate);
+      slotDate.setHours(hour, 0, 0, 0);
+
+      const displayTime12hr = slotDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      // Is slot in the past relative to now? Only for today
+      let cannotBook = false;
+      if (requestedDate.getTime() === today.getTime()) {
+        const now = new Date();
+        if (slotDate.getTime() <= now.getTime()) {
+          cannotBook = true;
+        }
+      }
+
+      timeSlots.push({
+        time: displayTime12hr,
+        price: hour >= 21 ? 1200 : 800,
+        type: hour >= 21 ? "peak" : "off-peak",
+        available: !bookedTimes.includes(displayTime12hr) && !cannotBook,
+        cannotBook, // new flag
+      });
+    }
+
+    res.status(200).json(timeSlots);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Failed to fetch available time slots",
+      details: error.message,
     });
   }
-
-  res.status(200).json(timeSlots);
-} catch (error) {
-  console.error(error);
-  res.status(500).json({
-    error: "Failed to fetch available time slots",
-    details: error.message
-  });
-}
 };
-
-
 
 // GET API - Retrieve all bookings (admin only)
 const getBookings = async (req, res) => {
@@ -223,6 +222,41 @@ const deleteBooking = async (req, res) => {
   }
 };
 
+const getCustomers = async (req, res) => {
+  try {
+    const customers = await Booking.aggregate([
+      {
+        $group: {
+          _id: { name: "$name", email: "$email", phone: "$phone" },
+          totalBookings: { $sum: 1 },
+          lastBooking: { $max: "$date" },
+          totalSpent: { $sum: "$amountPaid" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id.name",
+          email: "$_id.email",
+          phone: "$_id.phone",
+          totalBookings: 1,
+          lastBooking: 1,
+          totalSpent: 1,
+        },
+      },
+      { $sort: { lastBooking: -1 } }, // optional: show most recent customers first
+    ]);
+
+    console.log(customers);
+
+    res.status(200).json(customers);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch bookings", details: error.message });
+  }
+};
+
 export {
   addBooking,
   getAvailTimeSlots,
@@ -230,4 +264,5 @@ export {
   getBookingById,
   updateBooking,
   deleteBooking,
+  getCustomers,
 };

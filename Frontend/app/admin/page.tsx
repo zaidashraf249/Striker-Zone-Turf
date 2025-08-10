@@ -25,7 +25,27 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
+type Booking = {
+  _id: string
+  name: string
+  email: string
+  phone: string
+  date: string // or Date if you parse it
+  amountPaid: number
+  paymentMethod: "upi" | "cash"
+  isBookingConfirmed: boolean
+  isPaymentDone: boolean
+  notes?: string
+  createdAt: string
+  updatedAt: string
+}
 
+type RecentBooking = {
+  _id: string
+  name: string
+  email: string
+  phone: string
+}
 
 // const recentBookings = [
 //   {
@@ -66,47 +86,49 @@ import { useRouter } from "next/navigation"
 //   },
 // ]
 
-const customers = [
-  {
-    id: 1,
-    name: "Rahul Sharma",
-    email: "rahul@email.com",
-    phone: "+91 98765 43210",
-    totalBookings: 15,
-    totalSpent: "₹18,000",
-    lastBooking: "2024-01-25",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Priya Patel",
-    email: "priya@email.com",
-    phone: "+91 98765 43211",
-    totalBookings: 8,
-    totalSpent: "₹9,600",
-    lastBooking: "2024-01-20",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Arjun Singh",
-    email: "arjun@email.com",
-    phone: "+91 98765 43212",
-    totalBookings: 22,
-    totalSpent: "₹26,400",
-    lastBooking: "2024-01-24",
-    status: "vip",
-  },
-]
+// const customers = [
+//   {
+//     id: 1,
+//     name: "Rahul Sharma",
+//     email: "rahul@email.com",
+//     phone: "+91 98765 43210",
+//     totalBookings: 15,
+//     totalSpent: "₹18,000",
+//     lastBooking: "2024-01-25",
+//     status: "active",
+//   },
+//   {
+//     id: 2,
+//     name: "Priya Patel",
+//     email: "priya@email.com",
+//     phone: "+91 98765 43211",
+//     totalBookings: 8,
+//     totalSpent: "₹9,600",
+//     lastBooking: "2024-01-20",
+//     status: "active",
+//   },
+//   {
+//     id: 3,
+//     name: "Arjun Singh",
+//     email: "arjun@email.com",
+//     phone: "+91 98765 43212",
+//     totalBookings: 22,
+//     totalSpent: "₹26,400",
+//     lastBooking: "2024-01-24",
+//     status: "vip",
+//   },
+// ]
 
 export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("overview")
   const [searchTerm, setSearchTerm] = useState("")
-  const [allBookings, setAllBookings] = useState([]);
-  const [countTotalBookings, setCountTotalBookings] = useState();
+  const [allBookings, setAllBookings] = useState<Booking[]>([])
+  const [customers, setAllCustomers] = useState([]);
+  const [countTotalBookings, setCountTotalBookings] = useState(0);
+  const [countTotalCustomers, setCountTotalCustomers] = useState();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [recentBookings, setRecentBookings] = useState([]);
+  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
   const dashboardStats = [
     {
       title: "Total Bookings",
@@ -126,7 +148,7 @@ export default function AdminDashboard() {
     },
     {
       title: "Active Users",
-      value: "856",
+      value: countTotalCustomers,
       change: "+15%",
       trend: "up",
       icon: Users,
@@ -134,35 +156,16 @@ export default function AdminDashboard() {
     },
     {
       title: "Avg Rating",
-      value: "4.8",
+      value: "XX",
       change: "+0.2",
       trend: "up",
       icon: Star,
       color: "text-yellow-600",
     },
   ]
-  useEffect(() => {
-    // Check token from localStorage
-    const token = localStorage.getItem("adminToken");
-
-    if (!token) {
-      router.replace("/login"); // no token, send to login
-    } else {
-      // Optionally: verify token with backend before allowing in
-      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/verify`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(res => {
-          if (!res.ok) router.replace("/login");
-          else setLoading(false);
-        });
-
-      setLoading(false); // if skipping backend verification
-    }
-  }, [router]);
-
-useEffect(() => {
-  const token = localStorage.getItem("adminToken");
 
   async function getAllBookings() {
+    const token = localStorage.getItem("adminToken");
     try {
       // Check token before making request
       if (!token) {
@@ -213,8 +216,125 @@ useEffect(() => {
     }
   }
 
-  getAllBookings();
-}, []);
+  const fetchSlots = async () => {
+    try {
+      setLoading(true)
+      getAllBookings();
+    } catch (error) {
+      console.error("❌ Error fetching time slots", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // Check token from localStorage
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      router.replace("/login"); // no token, send to login
+    } else {
+      // Optionally: verify token with backend before allowing in
+      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/verify`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => {
+          if (!res.ok) router.replace("/login");
+          else setLoading(false);
+        });
+
+      setLoading(false); // if skipping backend verification
+    }
+  }, [router]);
+
+  useEffect(() => {
+    getAllBookings();
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+
+    async function getAllCustomers() {
+      try {
+        // Check token before making request
+        if (!token) {
+          console.warn("No token found. Redirecting to login...");
+          router.push("/login"); // optionally import & use useRouter
+          return;
+        }
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/get-customers`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        // Handle non-OK responses (e.g. 401, 500, etc.)
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Failed to fetch bookings:", errorText, response.status);
+          // Optional: redirect to login if unauthorized
+          if (response.status === 401) {
+            localStorage.removeItem("adminToken");
+            router.push("/login");
+          }
+          return;
+        }
+
+        // Parse result safely
+        const result = await response.json();
+
+        // Validate response type before using it
+        if (!Array.isArray(result)) {
+          console.error("Unexpected API response:", result);
+          return;
+        }
+
+        // Update state with bookings
+        setAllCustomers(result);
+        setCountTotalCustomers(result.length);
+      } catch (error) {
+        // Catch network errors & parsing errors
+        console.error("Error fetching bookings:", error);
+      }
+    }
+
+    getAllCustomers();
+  }, []);
+
+  async function handleDelete(bookingId: string){
+    // Optional: Confirm deletion with the user
+    if (!window.confirm("Are you sure you want to delete this booking?")) return;
+
+    const token = localStorage.getItem("adminToken");
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/delete-booking/${bookingId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Add Content-Type if your backend expects it
+          // 'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        // Success - update the UI as needed
+        getAllBookings();
+        alert("Booking deleted successfully!");
+        // Optionally: Call your fetch/refetch bookings function here
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to delete booking: ${errorData.error || response.statusText}`);
+      }
+    } catch (err) {
+      console.error("Error deleting booking:", err);
+      alert("An unexpected error occurred. Try again.");
+    }
+  }
 
 
   const getStatusColor = (status: string) => {
@@ -263,9 +383,12 @@ useEffect(() => {
             <p className="text-sm sm:text-base text-gray-600">Manage your turf bookings and customers</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <Button variant="outline" className="cursor-pointer bg-transparent text-sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export Data
+            {/* Refresh Button */}
+            <Button
+              onClick={fetchSlots}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mb-4"
+            >
+              {loading ? "Refreshing..." : "🔄 Refresh"}
             </Button>
             <Button className="bg-green-600 hover:bg-green-700 cursor-pointer text-sm">
               <Plus className="h-4 w-4 mr-2" />
@@ -511,7 +634,7 @@ useEffect(() => {
                                 <Button variant="ghost" size="sm" className="cursor-pointer">
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" className="cursor-pointer text-red-600">
+                                <Button variant="ghost" size="sm" className="cursor-pointer text-red-600" onClick={() => handleDelete(booking._id)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -537,46 +660,56 @@ useEffect(() => {
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {customers.map((customer) => (
-                <Card key={customer.id}>
-                  <CardContent className="p-4 sm:p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">{customer.name}</h3>
-                        <p className="text-sm text-gray-600">{customer.email}</p>
-                        <p className="text-sm text-gray-600">{customer.phone}</p>
-                      </div>
-                      <Badge className={getStatusColor(customer.status)}>{customer.status.toUpperCase()}</Badge>
-                    </div>
+              {customers.map((customer) => {
+                const dateObj = new Date(customer.lastBooking);
 
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Bookings:</span>
-                        <span className="font-medium">{customer.totalBookings}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Spent:</span>
-                        <span className="font-medium">{customer.totalSpent}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Last Booking:</span>
-                        <span className="font-medium">{customer.lastBooking}</span>
-                      </div>
-                    </div>
+                const displayDate = dateObj.toLocaleDateString("en-IN", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                });
+                return (
 
-                    <div className="flex space-x-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1 cursor-pointer bg-transparent text-xs">
-                        <Eye className="h-3 w-3 mr-1" />
-                        View
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1 cursor-pointer bg-transparent text-xs">
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  <Card key={customer.email}>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900">{customer.name}</h3>
+                          <p className="text-sm text-gray-600">{customer.email}</p>
+                          <p className="text-sm text-gray-600">{customer.phone}</p>
+                        </div>
+                        {/* <Badge className={getStatusColor(customer.status)}>{customer.status.toUpperCase()}</Badge> */}
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Total Bookings:</span>
+                          <span className="font-medium">{customer.totalBookings}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Total Spent:</span>
+                          <span className="font-medium">₹{customer.totalSpent}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Last Booking:</span>
+                          <span className="font-medium">{displayDate}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-2 mt-4">
+                        <Button variant="outline" size="sm" className="flex-1 cursor-pointer bg-transparent text-xs" disabled>
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1 cursor-pointer bg-transparent text-xs" disabled>
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })};
             </div>
           </TabsContent>
 
