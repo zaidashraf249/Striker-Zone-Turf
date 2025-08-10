@@ -38,6 +38,8 @@ type Booking = {
   notes?: string
   createdAt: string
   updatedAt: string
+  totalBookings: string
+  lastBooking: string
 }
 
 type RecentBooking = {
@@ -45,6 +47,9 @@ type RecentBooking = {
   name: string
   email: string
   phone: string
+  date: string
+  isBookingConfirmed: boolean
+  amountPaid: number
 }
 
 // const recentBookings = [
@@ -123,9 +128,9 @@ export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("overview")
   const [searchTerm, setSearchTerm] = useState("")
   const [allBookings, setAllBookings] = useState<Booking[]>([])
-  const [customers, setAllCustomers] = useState([]);
+  const [customers, setAllCustomers] = useState<Booking[]>([]);
   const [countTotalBookings, setCountTotalBookings] = useState(0);
-  const [countTotalCustomers, setCountTotalCustomers] = useState();
+  const [countTotalCustomers, setCountTotalCustomers] = useState(0);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
@@ -156,7 +161,7 @@ export default function AdminDashboard() {
     },
     {
       title: "Avg Rating",
-      value: "XX",
+      value: "4.8",
       change: "+0.2",
       trend: "up",
       icon: Star,
@@ -354,17 +359,11 @@ export default function AdminDashboard() {
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return <CheckCircle className="h-4 w-4" />
-      case "pending":
-        return <Clock className="h-4 w-4" />
-      case "cancelled":
-        return <XCircle className="h-4 w-4" />
-      default:
-        return <AlertCircle className="h-4 w-4" />
-    }
+  const getStatusIcon = (status: boolean) => {
+    if(status) {
+      return <CheckCircle className="h-4 w-4" />
+    } 
+    return <Clock className="h-4 w-4" />
   }
   if (loading) {
     return (
@@ -590,7 +589,7 @@ export default function AdminDashboard() {
                           <tr key={booking._id} className="hover:bg-gray-50">
                             {/* Booking ID */}
                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {booking.bookingId}
+                              {booking._id}
                             </td>
 
                             {/* Customer */}
@@ -688,7 +687,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Total Spent:</span>
-                          <span className="font-medium">₹{customer.totalSpent}</span>
+                          <span className="font-medium">₹{customer.totalBookings}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Last Booking:</span>
