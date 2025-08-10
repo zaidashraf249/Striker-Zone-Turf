@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -23,80 +23,48 @@ import {
   Filter,
   Search,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
-const dashboardStats = [
-  {
-    title: "Total Bookings",
-    value: "1,234",
-    change: "+12%",
-    trend: "up",
-    icon: Calendar,
-    color: "text-blue-600",
-  },
-  {
-    title: "Revenue",
-    value: "₹2,45,680",
-    change: "+8%",
-    trend: "up",
-    icon: CreditCard,
-    color: "text-green-600",
-  },
-  {
-    title: "Active Users",
-    value: "856",
-    change: "+15%",
-    trend: "up",
-    icon: Users,
-    color: "text-purple-600",
-  },
-  {
-    title: "Avg Rating",
-    value: "4.8",
-    change: "+0.2",
-    trend: "up",
-    icon: Star,
-    color: "text-yellow-600",
-  },
-]
 
-const recentBookings = [
-  {
-    id: "BK001",
-    customer: "Rahul Sharma",
-    date: "2024-01-25",
-    time: "7:00 PM - 8:00 PM",
-    amount: "₹1,200",
-    status: "confirmed",
-    phone: "+91 98765 43210",
-  },
-  {
-    id: "BK002",
-    customer: "Priya Patel",
-    date: "2024-01-25",
-    time: "6:00 PM - 7:00 PM",
-    amount: "₹1,200",
-    status: "pending",
-    phone: "+91 98765 43211",
-  },
-  {
-    id: "BK003",
-    customer: "Arjun Singh",
-    date: "2024-01-26",
-    time: "8:00 PM - 9:00 PM",
-    amount: "₹1,200",
-    status: "confirmed",
-    phone: "+91 98765 43212",
-  },
-  {
-    id: "BK004",
-    customer: "Sneha Gupta",
-    date: "2024-01-26",
-    time: "5:00 PM - 7:00 PM",
-    amount: "₹2,400",
-    status: "cancelled",
-    phone: "+91 98765 43213",
-  },
-]
+
+// const recentBookings = [
+//   {
+//     id: "BK001",
+//     customer: "Rahul Sharma",
+//     date: "2024-01-25",
+//     time: "7:00 PM - 8:00 PM",
+//     amount: "₹1,200",
+//     status: "confirmed",
+//     phone: "+91 98765 43210",
+//   },
+//   {
+//     id: "BK002",
+//     customer: "Priya Patel",
+//     date: "2024-01-25",
+//     time: "6:00 PM - 7:00 PM",
+//     amount: "₹1,200",
+//     status: "pending",
+//     phone: "+91 98765 43211",
+//   },
+//   {
+//     id: "BK003",
+//     customer: "Arjun Singh",
+//     date: "2024-01-26",
+//     time: "8:00 PM - 9:00 PM",
+//     amount: "₹1,200",
+//     status: "confirmed",
+//     phone: "+91 98765 43212",
+//   },
+//   {
+//     id: "BK004",
+//     customer: "Sneha Gupta",
+//     date: "2024-01-26",
+//     time: "5:00 PM - 7:00 PM",
+//     amount: "₹2,400",
+//     status: "cancelled",
+//     phone: "+91 98765 43213",
+//   },
+// ]
 
 const customers = [
   {
@@ -134,6 +102,120 @@ const customers = [
 export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("overview")
   const [searchTerm, setSearchTerm] = useState("")
+  const [allBookings, setAllBookings] = useState([]);
+  const [countTotalBookings, setCountTotalBookings] = useState();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [recentBookings, setRecentBookings] = useState([]);
+  const dashboardStats = [
+    {
+      title: "Total Bookings",
+      value: countTotalBookings,
+      change: "+12%",
+      trend: "up",
+      icon: Calendar,
+      color: "text-blue-600",
+    },
+    {
+      title: "Revenue",
+      value: "₹" + countTotalBookings * 800,
+      change: "+8%",
+      trend: "up",
+      icon: CreditCard,
+      color: "text-green-600",
+    },
+    {
+      title: "Active Users",
+      value: "856",
+      change: "+15%",
+      trend: "up",
+      icon: Users,
+      color: "text-purple-600",
+    },
+    {
+      title: "Avg Rating",
+      value: "4.8",
+      change: "+0.2",
+      trend: "up",
+      icon: Star,
+      color: "text-yellow-600",
+    },
+  ]
+  useEffect(() => {
+    // Check token from localStorage
+    const token = localStorage.getItem("adminToken");
+
+    if (!token) {
+      router.replace("/login"); // no token, send to login
+    } else {
+      // Optionally: verify token with backend before allowing in
+      fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/verify`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => {
+          if (!res.ok) router.replace("/login");
+          else setLoading(false);
+        });
+
+      setLoading(false); // if skipping backend verification
+    }
+  }, [router]);
+
+useEffect(() => {
+  const token = localStorage.getItem("adminToken");
+
+  async function getAllBookings() {
+    try {
+      // Check token before making request
+      if (!token) {
+        console.warn("No token found. Redirecting to login...");
+        router.push("/login"); // optionally import & use useRouter
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/get-bookings`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Handle non-OK responses (e.g. 401, 500, etc.)
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to fetch bookings:", errorText, response.status);
+        // Optional: redirect to login if unauthorized
+        if (response.status === 401) {
+          localStorage.removeItem("adminToken");
+          router.push("/login");
+        }
+        return;
+      }
+
+      // Parse result safely
+      const result = await response.json();
+
+      // Validate response type before using it
+      if (!Array.isArray(result)) {
+        console.error("Unexpected API response:", result);
+        return;
+      }
+
+      // Update state with bookings
+      setAllBookings(result);
+      setCountTotalBookings(result.length);
+      setRecentBookings(result.slice(0, 5));
+    } catch (error) {
+      // Catch network errors & parsing errors
+      console.error("Error fetching bookings:", error);
+    }
+  }
+
+  getAllBookings();
+}, []);
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -164,7 +246,13 @@ export default function AdminDashboard() {
         return <AlertCircle className="h-4 w-4" />
     }
   }
-
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="container mx-auto px-4">
@@ -232,20 +320,51 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3 sm:space-y-4">
-                    {recentBookings.slice(0, 5).map((booking) => (
-                      <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{booking.customer}</p>
-                          <p className="text-xs text-gray-500">
-                            {booking.date} • {booking.time}
-                          </p>
+                    {recentBookings.map((booking) => {
+                      // Convert UTC date to IST for display
+                      const dateObj = new Date(booking.date);
+
+                      const displayDate = dateObj.toLocaleDateString("en-IN", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      });
+
+                      const displayTime = dateObj.toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true,
+                      });
+
+                      const statusText = booking.isBookingConfirmed ? "Confirmed" : "Pending";
+                      const statusColorClass = booking.isBookingConfirmed
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800";
+
+                      return (
+                        <div
+                          key={booking._id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        >
+                          {/* Left: Name + Date & Time */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {booking.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {displayDate} • {displayTime}
+                            </p>
+                          </div>
+
+                          {/* Right: Amount + Status */}
+                          <div className="flex items-center space-x-2 ml-3">
+                            <span className="text-sm font-medium">₹{booking.amountPaid}</span>
+                            <Badge className={`text-xs ${statusColorClass}`}>{statusText}</Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2 ml-3">
-                          <span className="text-sm font-medium">{booking.amount}</span>
-                          <Badge className={`text-xs ${getStatusColor(booking.status)}`}>{booking.status}</Badge>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+
                   </div>
                 </CardContent>
               </Card>
@@ -325,45 +444,81 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {recentBookings.map((booking) => (
-                        <tr key={booking.id} className="hover:bg-gray-50">
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {booking.id}
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{booking.customer}</div>
-                              <div className="text-sm text-gray-500">{booking.phone}</div>
-                            </div>
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{booking.date}</div>
-                            <div className="text-sm text-gray-500">{booking.time}</div>
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {booking.amount}
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                            <Badge className={`inline-flex items-center space-x-1 ${getStatusColor(booking.status)}`}>
-                              {getStatusIcon(booking.status)}
-                              <span className="capitalize">{booking.status}</span>
-                            </Badge>
-                          </td>
-                          <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex space-x-2">
-                              <Button variant="ghost" size="sm" className="cursor-pointer">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="cursor-pointer">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" className="cursor-pointer text-red-600">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {allBookings.map((booking) => {
+                        // Convert UTC date to IST
+                        const dateObj = new Date(booking.date);
+                        // dateObj.setMinutes(dateObj.getMinutes() + 330); // UTC → IST (+5:30)
+
+                        const displayDate = dateObj.toLocaleDateString("en-IN", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        });
+
+                        const displayTime = dateObj.toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        });
+
+                        const statusText = booking.isBookingConfirmed ? "Confirmed" : "Pending";
+
+                        return (
+                          <tr key={booking._id} className="hover:bg-gray-50">
+                            {/* Booking ID */}
+                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {booking.bookingId}
+                            </td>
+
+                            {/* Customer */}
+                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {booking.name}
+                                </div>
+                                <div className="text-sm text-gray-500">{booking.phone}</div>
+                              </div>
+                            </td>
+
+                            {/* Date & Time */}
+                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">{displayDate}</div>
+                              <div className="text-sm text-gray-500">{displayTime}</div>
+                            </td>
+
+                            {/* Amount */}
+                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              ₹{booking.amountPaid}
+                            </td>
+
+                            {/* Status */}
+                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                              <Badge
+                                className={`inline-flex items-center space-x-1 ${booking.isBookingConfirmed ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                              >
+                                {booking.isBookingConfirmed ? getStatusIcon(true) : getStatusIcon(false)}
+                                <span>{statusText}</span>
+                              </Badge>
+                            </td>
+
+                            {/* Actions */}
+                            <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex space-x-2">
+                                <Button variant="ghost" size="sm" className="cursor-pointer">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="cursor-pointer">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="cursor-pointer text-red-600">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

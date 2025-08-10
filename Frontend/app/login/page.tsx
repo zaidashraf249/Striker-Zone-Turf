@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react"; // Eye icon for password toggle
+import axios from "axios";
 
 // Example admin credentials
 const ADMIN_EMAIL = "admin@example.com";
@@ -18,38 +19,47 @@ export default function AdminLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsSubmitting(true);
 
-    try {
-      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-        // Store admin login state in localStorage
-        localStorage.setItem("isAdminLoggedIn", "true");
+  try {
+    // Treat email as username
+    const payload = {
+      username: email, // from your form state
+      password: password // from your form state
+    };
 
-        toast({
-          title: "Login Successful",
-          description: "Redirecting to dashboard...",
-        });
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/login`, payload);
 
-        router.push("/dashboard");
-      } else {
-        toast({
-          title: "Login Failed",
-          description: "Invalid email or password.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+    if (res.data && res.data.token) {
+      // Store admin login state & token
+      localStorage.setItem("isAdminLoggedIn", "true");
+      localStorage.setItem("adminToken", res.data.token);
+
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Login Successful",
+        description: "Redirecting to dashboard...",
+      });
+
+      router.push("/admin");
+    } else {
+      toast({
+        title: "Login Failed",
+        description: res.data?.error || "Invalid username or password.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.response?.data?.error || "Something went wrong. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">

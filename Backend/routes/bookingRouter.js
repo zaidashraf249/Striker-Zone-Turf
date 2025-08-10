@@ -7,7 +7,7 @@ import {
   updateBooking, 
   deleteBooking
 } from '../controller/bookingController.js';
-import { authMiddleware, adminMiddleware } from '../middleware/auth.js';
+import { verifyAdminToken } from '../middleware/auth.js';
 
 const bookingRouter = express.Router();
 
@@ -16,8 +16,8 @@ bookingRouter.post('/', addBooking);
 bookingRouter.get('/avail-time-slots', getAvailTimeSlots);
 
 // Admin only
-bookingRouter.get('/', authMiddleware, adminMiddleware, getBookings);
-bookingRouter.put('/:id', authMiddleware, adminMiddleware, updateBooking);
-bookingRouter.delete('/:id', authMiddleware, adminMiddleware, deleteBooking);
+bookingRouter.get('/get-bookings', verifyAdminToken, getBookings);
+bookingRouter.put('/:id', verifyAdminToken, updateBooking);
+bookingRouter.delete('/delete-booking/:id', verifyAdminToken, deleteBooking);
 
 export default bookingRouter;
