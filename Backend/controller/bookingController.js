@@ -5,7 +5,9 @@ const addBooking = async (req, res) => {
   const { name, email, phone, date, amountPaid, paymentMethod } = req.body;
 
   if (!name || !email || !phone || !date) {
-    return res.status(400).json({ error: "Name, email, phone, and date are required" });
+    return res
+      .status(400)
+      .json({ error: "Name, email, phone, and date are required" });
   }
 
   // Parse date
@@ -35,7 +37,9 @@ const addBooking = async (req, res) => {
   maxDate.setHours(23, 59, 59, 999);
 
   if (bookingDate < today || bookingDate > maxDate) {
-    return res.status(400).json({ error: "Booking date must be within the next 2 months" });
+    return res
+      .status(400)
+      .json({ error: "Booking date must be within the next 2 months" });
   }
 
   // Check if the slot is already taken
@@ -57,11 +61,87 @@ const addBooking = async (req, res) => {
     });
 
     const savedBooking = await newBooking.save();
-    res.status(201).json({ message: "Booking created in pending state", data: savedBooking });
+    res
+      .status(201)
+      .json({
+        message: "Booking created in pending state",
+        data: savedBooking,
+      });
   } catch (error) {
-    res.status(500).json({ error: "Failed to save booking", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Failed to save booking", details: error.message });
   }
 };
+
+const getAvailTimeSlots = async (req, res) => {
+  try {
+  const { date } = req.query; // date string YYYY-MM-DD
+
+  if (!date) {
+    return res.status(400).json({ error: "Date is required" });
+  }
+
+  const requestedDate = new Date(date);
+  requestedDate.setHours(0, 0, 0, 0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Fetch bookings for the day
+  const bookings = await Booking.find({
+    date: { $gte: requestedDate, $lt: new Date(requestedDate.getTime() + 24 * 60 * 60 * 1000) }
+  });
+
+  const bookedTimes = bookings.map(item => {
+    const dateObj = new Date(item.date);
+    return dateObj.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
+  });
+
+  const timeSlots = [];
+  for (let hour = 6; hour <= 23; hour++) {
+    const slotDate = new Date(requestedDate);
+    slotDate.setHours(hour, 0, 0, 0);
+
+    const displayTime12hr = slotDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
+
+    // Is slot in the past relative to now? Only for today
+    let cannotBook = false;
+    if (requestedDate.getTime() === today.getTime()) {
+      const now = new Date();
+      if (slotDate.getTime() <= now.getTime()) {
+        cannotBook = true;
+      }
+    }
+
+    timeSlots.push({
+      time: displayTime12hr,
+      price: hour >= 21 ? 1200 : 800,
+      type: hour >= 21 ? "peak" : "off-peak",
+      available: !bookedTimes.includes(displayTime12hr) && !cannotBook,
+      cannotBook // new flag
+    });
+  }
+
+  res.status(200).json(timeSlots);
+} catch (error) {
+  console.error(error);
+  res.status(500).json({
+    error: "Failed to fetch available time slots",
+    details: error.message
+  });
+}
+};
+
+
 
 // GET API - Retrieve all bookings (admin only)
 const getBookings = async (req, res) => {
@@ -69,7 +149,9 @@ const getBookings = async (req, res) => {
     const bookings = await Booking.find().sort({ createdAt: -1 });
     res.status(200).json(bookings);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch bookings", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch bookings", details: error.message });
   }
 };
 
@@ -85,7 +167,9 @@ const getBookingById = async (req, res) => {
 
     res.status(200).json(booking);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch booking", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch booking", details: error.message });
   }
 };
 
@@ -98,7 +182,9 @@ const updateBooking = async (req, res) => {
   }
 
   try {
-    const updatedBooking = await Booking.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedBooking = await Booking.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
     if (!updatedBooking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -137,4 +223,11 @@ const deleteBooking = async (req, res) => {
   }
 };
 
-export { addBooking, getBookings, getBookingById, updateBooking, deleteBooking };
+export {
+  addBooking,
+  getAvailTimeSlots,
+  getBookings,
+  getBookingById,
+  updateBooking,
+  deleteBooking,
+};

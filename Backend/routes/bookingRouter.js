@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   addBooking, 
+  getAvailTimeSlots,
   getBookings, 
   getBookingById, 
   updateBooking, 
@@ -12,6 +13,7 @@ const bookingRouter = express.Router();
 
 // Public
 bookingRouter.post('/', addBooking);
+bookingRouter.get('/avail-time-slots', getAvailTimeSlots);
 
 // Admin only
 bookingRouter.get('/', authMiddleware, adminMiddleware, getBookings);
