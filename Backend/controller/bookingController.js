@@ -175,7 +175,7 @@ const getBookingById = async (req, res) => {
 // PUT API - Update booking (admin only)
 const updateBooking = async (req, res) => {
   const { id } = req.params;
-
+  console.log(req.body)
   if (!id) {
     return res.status(400).json({ message: "ID parameter is required" });
   }

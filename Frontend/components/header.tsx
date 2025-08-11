@@ -128,6 +128,18 @@ export function Header() {
                   {item.label}
                 </NavItem>
               ))}
+              {isAdmin ? (
+              <Link href="/admin" passHref legacyBehavior>
+                <Button variant="outline" size="sm" asChild>
+                  <a>
+                    <User className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </a>
+                </Button>
+              </Link>
+            ) : (
+              <></>
+            )}
             </NavigationMenuList>
           </NavigationMenu>
 

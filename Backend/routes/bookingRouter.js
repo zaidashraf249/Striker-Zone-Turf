@@ -18,7 +18,7 @@ bookingRouter.get('/avail-time-slots', getAvailTimeSlots);
 
 // Admin only
 bookingRouter.get('/get-bookings', verifyAdminToken, getBookings);
-bookingRouter.put('/:id', verifyAdminToken, updateBooking);
+bookingRouter.put('/update-booking/:id', verifyAdminToken, updateBooking);
 bookingRouter.delete('/delete-booking/:id', verifyAdminToken, deleteBooking);
 
 bookingRouter.get('/get-customers', verifyAdminToken, getCustomers);
