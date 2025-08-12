@@ -7,48 +7,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import {
-  CreditCard,
-  Shield,
-  CheckCircle,
   Smartphone,
-  Wallet,
-  Building,
   Lock,
   ArrowLeft,
   Clock,
   MapPin,
 } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import axios from "axios"
 
 const paymentMethods = [
   {
     id: "upi",
     name: "UPI",
     icon: Smartphone,
-    description: "Pay using UPI ID or QR code",
-    popular: true,
-    processingTime: "Instant",
-  },
-  {
-    id: "card",
-    name: "Credit/Debit Card",
-    icon: CreditCard,
-    description: "Visa, Mastercard, RuPay accepted",
-    popular: false,
-    processingTime: "Instant",
-  },
-  {
-    id: "netbanking",
-    name: "Net Banking",
-    icon: Building,
-    description: "All major banks supported",
-    popular: false,
-    processingTime: "2-3 minutes",
-  },
-  {
-    id: "wallet",
-    name: "Digital Wallets",
-    icon: Wallet,
-    description: "Paytm, PhonePe, Google Pay",
+    description: "Pay using UPI",
     popular: true,
     processingTime: "Instant",
   },
@@ -56,33 +29,63 @@ const paymentMethods = [
 
 export default function PaymentPage() {
   const [selectedMethod, setSelectedMethod] = useState("upi")
-  const [paymentData, setPaymentData] = useState({
-    upiId: "",
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
-    cardName: "",
-    bankName: "",
-    walletType: "paytm",
-  })
   const [isProcessing, setIsProcessing] = useState(false)
   const { toast } = useToast()
+  const searchParams = useSearchParams()
 
   // Mock booking data - in real app, this would come from booking context
+  // Extract values from URL
   const bookingDetails = {
     turf: "Striker Zone Main",
-    date: "January 25, 2024",
-    time: "7:00 PM - 8:00 PM",
-    duration: "1 hour",
-    basePrice: 1200,
-    taxes: 216,
-    total: 1416,
+    date: searchParams.get("date") || "",
+    price: Number(searchParams.get("price") || 0),
+    additional: Number(searchParams.get("additional") || 0),
+    name: searchParams.get("name") || "",
+    phone: searchParams.get("phone") || "",
+    email: searchParams.get("email") || "",
+  }
+
+  const formatDate = (dateStr: string) => {
+    const [day, month, yearAndTime] = dateStr.split("-")
+    const [year, time, meridian] = yearAndTime.split(/[\s:]+/) // year, hour, minute, AM/PM
+    let hour = parseInt(time)
+    const minute = dateStr.match(/:(\d+)/)?.[1] || "00"
+    const ampm = dateStr.includes("PM") ? "PM" : "AM"
+
+    if (ampm === "PM" && hour < 12) hour += 12
+    if (ampm === "AM" && hour === 12) hour = 0
+
+    return `${month}-${day}-${year} ${hour.toString().padStart(2, "0")}:${minute}`
   }
 
   const handlePayment = async () => {
     setIsProcessing(true)
 
     // Simulate payment processing
+    window.location.href = "upi://pay?pa=8275435110@ybl&pn=AbdulRahim&am=19&cu=INR"
+
+    const sendBooking = async () => {
+      try {
+        const payload = {
+          name: bookingDetails.name,
+          email: bookingDetails.email,
+          phone: bookingDetails.phone,
+          date: formatDate(bookingDetails.date),
+          amountPaid: bookingDetails.price + bookingDetails.additional,
+        }
+
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/`, payload)
+
+        console.log("✅ Booking successful", res.data)
+      } catch (error) {
+        console.error("❌ Error sending booking", error)
+      }
+    }
+
+    sendBooking()
+
+
+
     setTimeout(() => {
       setIsProcessing(false)
       toast({
@@ -91,11 +94,7 @@ export default function PaymentPage() {
       })
       // Redirect to success page
       window.location.href = "/booking-success"
-    }, 3000)
-  }
-
-  const handleInputChange = (field: string, value: string) => {
-    setPaymentData((prev) => ({ ...prev, [field]: value }))
+    }, 20000)
   }
 
   return (
@@ -116,18 +115,6 @@ export default function PaymentPage() {
         <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Payment Methods */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Security Banner */}
-            <Card className="border-green-200 bg-green-50">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Shield className="h-6 w-6 text-green-600" />
-                  <div>
-                    <p className="font-semibold text-green-800">256-bit SSL Encrypted</p>
-                    <p className="text-sm text-green-700">Your payment information is completely secure</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Payment Method Selection */}
             <Card>
@@ -140,11 +127,10 @@ export default function PaymentPage() {
                     <button
                       key={method.id}
                       onClick={() => setSelectedMethod(method.id)}
-                      className={`p-4 rounded-lg border text-left transition-all cursor-pointer ${
-                        selectedMethod === method.id
+                      className={`p-4 rounded-lg border text-left transition-all cursor-pointer ${selectedMethod === method.id
                           ? "border-green-500 bg-green-50"
                           : "border-gray-200 hover:border-gray-300"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start space-x-3">
                         <method.icon className="h-6 w-6 text-gray-600 mt-1" />
@@ -162,140 +148,30 @@ export default function PaymentPage() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Payment Form */}
+            
+            {/* Support */}
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-sm text-gray-600 mb-2">Need help with payment?</p>
+                <Button variant="outline" size="sm" className="cursor-pointer bg-transparent">
+                  Contact Support
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* Cancellation Policy */}
             <Card>
               <CardHeader>
-                <CardTitle>Payment Details</CardTitle>
+                <CardTitle className="text-sm">Policy</CardTitle>
               </CardHeader>
-              <CardContent>
-                {selectedMethod === "upi" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">UPI ID</label>
-                      <Input
-                        type="text"
-                        placeholder="yourname@upi"
-                        value={paymentData.upiId}
-                        onChange={(e) => handleInputChange("upiId", e.target.value)}
-                      />
-                    </div>
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        <strong>Alternative:</strong> You can also scan the QR code that will appear after clicking "Pay
-                        Now"
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {selectedMethod === "card" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
-                      <Input
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        value={paymentData.cardNumber}
-                        onChange={(e) => handleInputChange("cardNumber", e.target.value)}
-                      />
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
-                        <Input
-                          type="text"
-                          placeholder="MM/YY"
-                          value={paymentData.expiryDate}
-                          onChange={(e) => handleInputChange("expiryDate", e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
-                        <Input
-                          type="text"
-                          placeholder="123"
-                          value={paymentData.cvv}
-                          onChange={(e) => handleInputChange("cvv", e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
-                      <Input
-                        type="text"
-                        placeholder="Name as on card"
-                        value={paymentData.cardName}
-                        onChange={(e) => handleInputChange("cardName", e.target.value)}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {selectedMethod === "netbanking" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Select Bank</label>
-                      <select
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
-                        value={paymentData.bankName}
-                        onChange={(e) => handleInputChange("bankName", e.target.value)}
-                      >
-                        <option value="">Choose your bank</option>
-                        <option value="sbi">State Bank of India</option>
-                        <option value="hdfc">HDFC Bank</option>
-                        <option value="icici">ICICI Bank</option>
-                        <option value="axis">Axis Bank</option>
-                        <option value="pnb">Punjab National Bank</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {selectedMethod === "wallet" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Select Wallet</label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-                        {["paytm", "phonepe", "googlepay"].map((wallet) => (
-                          <button
-                            key={wallet}
-                            onClick={() => handleInputChange("walletType", wallet)}
-                            className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
-                              paymentData.walletType === wallet
-                                ? "border-green-500 bg-green-50"
-                                : "border-gray-200 hover:border-gray-300"
-                            }`}
-                          >
-                            <p className="font-medium capitalize">{wallet}</p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <CardContent className="text-xs text-gray-600 space-y-2">
+                <p>• Free cancellation up to 2 day before booking</p>
+                <p>• 50% refund for cancellations 4 hours before</p>
+                <p>• No refund for cancellations within 2 hours</p>
+                <p>• Weather-related cancellations: Full refund</p>
               </CardContent>
             </Card>
 
-            {/* Security Features */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="grid sm:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Lock className="h-4 w-4 text-green-600" />
-                    <span>SSL Secured</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <span>PCI Compliant</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Instant Refunds</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Booking Summary */}
@@ -324,15 +200,15 @@ export default function PaymentPage() {
                 <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between">
                     <span>Base Price ({bookingDetails.duration})</span>
-                    <span>₹{bookingDetails.basePrice}</span>
+                    <span>₹{bookingDetails.price}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Taxes & Fees</span>
-                    <span>₹{bookingDetails.taxes}</span>
+                    <span>₹{bookingDetails.additional}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg border-t pt-2">
                     <span>Total Amount</span>
-                    <span>₹{bookingDetails.total}</span>
+                    <span>₹{bookingDetails.price + bookingDetails.additional}</span>
                   </div>
                 </div>
               </CardContent>
@@ -359,28 +235,9 @@ export default function PaymentPage() {
               )}
             </Button>
 
-            {/* Cancellation Policy */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Cancellation Policy</CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-gray-600 space-y-2">
-                <p>• Free cancellation up to 4 hours before booking</p>
-                <p>• 50% refund for cancellations 2-4 hours before</p>
-                <p>• No refund for cancellations within 2 hours</p>
-                <p>• Weather-related cancellations: Full refund</p>
-              </CardContent>
-            </Card>
 
-            {/* Support */}
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-sm text-gray-600 mb-2">Need help with payment?</p>
-                <Button variant="outline" size="sm" className="cursor-pointer bg-transparent">
-                  Contact Support
-                </Button>
-              </CardContent>
-            </Card>
+
+
           </div>
         </div>
       </div>

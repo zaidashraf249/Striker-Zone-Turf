@@ -19,9 +19,8 @@ const NavItem = memo(({ href, children, isActive }: { href: string; children: Re
   <NavigationMenuItem>
     <Link href={href} passHref legacyBehavior>
       <NavigationMenuLink
-        className={`group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer ${
-          isActive ? "bg-gray-100 text-gray-900" : "bg-white text-gray-700"
-        }`}
+        className={`group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer ${isActive ? "bg-gray-100 text-gray-900" : "bg-white text-gray-700"
+          }`}
       >
         {children}
       </NavigationMenuLink>
@@ -42,9 +41,8 @@ const MobileNavItem = memo(
     <Link
       href={href}
       onClick={onClick}
-      className={`px-4 py-2 text-sm hover:bg-gray-100 rounded cursor-pointer block w-full text-left ${
-        isActive ? "bg-gray-100 font-medium" : ""
-      }`}
+      className={`px-4 py-2 text-sm hover:bg-gray-100 rounded cursor-pointer block w-full text-left ${isActive ? "bg-gray-100 font-medium" : ""
+        }`}
     >
       {children}
     </Link>
@@ -58,6 +56,18 @@ export function Header() {
   const router = useRouter()
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Call once on load and whenever menu opens (to catch login/logout on another tab)
+    setIsAdmin(!!localStorage.getItem("adminToken"));
+  }, [isMenuOpen, pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    setIsAdmin(false);
+    router.push("/login"); // or wherever you want to go after logout
+  };
 
   // Handle scroll effect for header
   useEffect(() => {
@@ -92,14 +102,13 @@ export function Header() {
   const mobileNavItems = [
     ...navItems,
     { href: "/notifications", label: "Notifications" },
-    { href: "/dashboard", label: "Dashboard" },
+    { href: "/admin", label: "Admin" },
   ]
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-white/60 transition-all duration-200 ${
-        scrolled ? "bg-white/95 shadow-sm" : "bg-white/90"
-      }`}
+      className={`sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-white/60 transition-all duration-200 ${scrolled ? "bg-white/95 shadow-sm" : "bg-white/90"
+        }`}
     >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
@@ -119,19 +128,37 @@ export function Header() {
                   {item.label}
                 </NavItem>
               ))}
+              {isAdmin ? (
+              <Link href="/admin" passHref legacyBehavior>
+                <Button variant="outline" size="sm" asChild>
+                  <a>
+                    <User className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </a>
+                </Button>
+              </Link>
+            ) : (
+              <></>
+            )}
             </NavigationMenuList>
           </NavigationMenu>
 
           {/* Contact Info & CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/login" passHref legacyBehavior>
-              <Button variant="outline" size="sm" asChild>
-                <a>
-                  <User className="h-4 w-4 mr-2" />
-                  Login
-                </a>
+            {isAdmin ? (
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                Logout
               </Button>
-            </Link>
+            ) : (
+              <Link href="/login" passHref legacyBehavior>
+                <Button variant="outline" size="sm" asChild>
+                  <a>
+                    <User className="h-4 w-4 mr-2" />
+                    Login
+                  </a>
+                </Button>
+              </Link>
+            )}
             <Link href="/booking" passHref legacyBehavior>
               <Button className="bg-green-600 hover:bg-green-700" asChild>
                 <a>Book Now</a>
@@ -164,6 +191,19 @@ export function Header() {
                   {item.label}
                 </MobileNavItem>
               ))}
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2"
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  Logout
+                </Button>
+              )}
               <div className="px-4 py-2 text-sm text-gray-600 flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
                 <span>+91 98765 43210</span>
