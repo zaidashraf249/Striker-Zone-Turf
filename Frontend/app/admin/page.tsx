@@ -41,6 +41,7 @@ type Booking = {
   updatedAt: string
   totalBookings: string
   lastBooking: string
+  totalSpent: number
 }
 
 type RecentBooking = {
@@ -226,10 +227,62 @@ export default function AdminDashboard() {
     }
   }
 
+  async function getAllCustomers() {
+    const token = localStorage.getItem("adminToken");
+    try {
+      // Check token before making request
+      if (!token) {
+        console.warn("No token found. Redirecting to login...");
+        router.push("/login"); // optionally import & use useRouter
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/get-customers`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Handle non-OK responses (e.g. 401, 500, etc.)
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Failed to fetch bookings:", errorText, response.status);
+        // Optional: redirect to login if unauthorized
+        if (response.status === 401) {
+          localStorage.removeItem("adminToken");
+          router.push("/login");
+        }
+        return;
+      }
+
+      // Parse result safely
+      const result = await response.json();
+
+      // Validate response type before using it
+      if (!Array.isArray(result)) {
+        console.error("Unexpected API response:", result);
+        return;
+      }
+
+      // Update state with bookings
+      setAllCustomers(result);
+      setCountTotalCustomers(result.length);
+    } catch (error) {
+      // Catch network errors & parsing errors
+      console.error("Error fetching bookings:", error);
+    }
+  }
+
   const fetchSlots = async () => {
     try {
       setLoading(true)
       getAllBookings();
+      getAllCustomers();
     } catch (error) {
       console.error("❌ Error fetching time slots", error)
     } finally {
@@ -260,58 +313,6 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
-
-    async function getAllCustomers() {
-      try {
-        // Check token before making request
-        if (!token) {
-          console.warn("No token found. Redirecting to login...");
-          router.push("/login"); // optionally import & use useRouter
-          return;
-        }
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/get-customers`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        // Handle non-OK responses (e.g. 401, 500, etc.)
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Failed to fetch bookings:", errorText, response.status);
-          // Optional: redirect to login if unauthorized
-          if (response.status === 401) {
-            localStorage.removeItem("adminToken");
-            router.push("/login");
-          }
-          return;
-        }
-
-        // Parse result safely
-        const result = await response.json();
-
-        // Validate response type before using it
-        if (!Array.isArray(result)) {
-          console.error("Unexpected API response:", result);
-          return;
-        }
-
-        // Update state with bookings
-        setAllCustomers(result);
-        setCountTotalCustomers(result.length);
-      } catch (error) {
-        // Catch network errors & parsing errors
-        console.error("Error fetching bookings:", error);
-      }
-    }
-
     getAllCustomers();
   }, []);
 
@@ -484,7 +485,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="customers" className="text-xs sm:text-sm">
               Customers
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm" disabled>
               Analytics
             </TabsTrigger>
           </TabsList>
@@ -730,9 +731,12 @@ export default function AdminDashboard() {
                             {/* Actions */}
                             <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
-                                <Button variant="ghost" size="sm" className="cursor-pointer" onClick={() => handleConfirmation(booking._id)}>
-                                  <CheckCheck className="h-4 w-6" />
-                                </Button>
+                                {booking.isBookingConfirmed ? <></>
+                                  :
+                                  <Button variant="ghost" size="sm" className="cursor-pointer" onClick={() => handleConfirmation(booking._id)}>
+                                    <CheckCheck className="h-4 w-6" />
+                                  </Button>
+                                }
                                 {/* <Button variant="ghost" size="sm" className="cursor-pointer">
                                   <Edit className="h-4 w-4" />
                                 </Button> */}
@@ -755,10 +759,10 @@ export default function AdminDashboard() {
           <TabsContent value="customers" className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Customer Management</h2>
-              <Button className="bg-green-600 hover:bg-green-700 cursor-pointer text-sm">
+              {/* <Button className="bg-green-600 hover:bg-green-700 cursor-pointer text-sm">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Customer
-              </Button>
+              </Button> */}
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -769,6 +773,8 @@ export default function AdminDashboard() {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
+                  hour: "2-digit",
+                  minute: "numeric"
                 });
                 return (
 
@@ -790,7 +796,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Total Spent:</span>
-                          <span className="font-medium">₹{customer.totalBookings}</span>
+                          <span className="font-medium">₹{customer.totalSpent}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Last Booking:</span>
@@ -810,8 +816,8 @@ export default function AdminDashboard() {
                       </div>
                     </CardContent>
                   </Card>
-                );
-              })};
+                )
+              })}
             </div>
           </TabsContent>
 

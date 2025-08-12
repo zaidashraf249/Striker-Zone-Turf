@@ -265,7 +265,7 @@ export default function BookingPage() {
                   <MapPin className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="font-semibold">Strike Zone</p>
-                    <p className="text-sm text-gray-600">Sector 18, Noida</p>
+                    <p className="text-sm text-gray-600">Kamptee Road, Nagpur</p>
                   </div>
                 </div>
 
